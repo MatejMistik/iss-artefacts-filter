@@ -32,29 +32,29 @@ with contextlib.closing(wave.open(recording,'r')) as f:
     frames = f.getnframes()
     rate = f.getframerate()
     duration = frames / float(rate)
-    print(duration)
-    print(frames)
-    print(rate)
+    print("duration " + str(duration))
+    print("frames " + str(frames))
+    print("framerate " + str(rate))
 
 
 
 data_off = wavfile.read(recording)
 
 array_off = np.array(data_off[1], dtype=float)
-print("bez normalizace " + str(max(array_off)))
-print("bez normalizace " + str(min(array_off)))
+print("MAX bez normalizace " + str(max(array_off)))
+print("MIN bez normalizace " + str(min(array_off)))
 
 array_off -= np.mean(array_off)
 array_off /= np.abs(array_off).max()
 print(max(array_off))
 print(min(array_off))
-
+""""
 array_off = array_off [5000:21000]
 framer = np.zeros(shape=(99, 320))
 for i in range(99):
     frame = array_off[(i*160):320+(i*160)]
     framer[i] = frame
-""""
+
 task3_off = framer
 Clip_off = framer
 ## print  #  
