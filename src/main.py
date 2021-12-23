@@ -33,12 +33,12 @@ recording = 'audio/xmisti00.wav'
 *
 ***************************************************************************************/
 """
-def zplane(b,a,placeNumber):
+def zplane(b,a,placeNumber,FilterFreq):
     """Plot the complex z-plane given a transfer function.
     """
     
     # get a figure/plot
-    ax = plt.subplot(2,2,placeNumber)
+    ax = plt.subplot(1,2,placeNumber)
 
     # create the unit circle
     uc = patches.Circle((0,0), radius=1, fill=False,
@@ -79,7 +79,7 @@ def zplane(b,a,placeNumber):
     r = 1.2; plt.axis('scaled'); plt.axis([-r, r, -r, r])
     plt.gca().set_xlabel('Realná zložka $\mathbb{R}\{$z$\}$')
     plt.gca().set_ylabel('Imaginárna zložka $\mathbb{I}\{$z$\}$')
-    plt.gca().set_title(u"Póly a nuly Filtrov")
+    plt.gca().set_title(u"Butterworth Filter " + str(FilterFreq) + 'Hz')
     plt.legend(loc='upper right')
 
     return z, p, k
@@ -305,12 +305,16 @@ plt.savefig('src/img/task7filters.pdf')
 plt.close()
 
 
-#####################################  8. Poles and NULLs  ######################################
+#####################################  8. Poles and Zeros  ######################################
 plt.figure(figsize=(10,5))
-zplane(b1,a1,1)
-zplane(b2,a2,2)
-zplane(b3,a3,3)
-zplane(b4,a4,4)
-plt.show()
-plt.savefig('src/img/task8poles.pdf')
+zplane(b1,a1,1,f1)
+zplane(b2,a2,2,f2)
+plt.savefig('src/img/task8polesA.pdf')
 plt.close()
+plt.figure(figsize=(10,5))
+zplane(b3,a3,1,f3)
+zplane(b4,a4,2,f4)
+plt.savefig('src/img/task8polesB.pdf')
+plt.close()
+
+#####################################  9. Poles and Zeros  ######################################
