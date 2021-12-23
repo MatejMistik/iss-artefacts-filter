@@ -84,10 +84,26 @@ def zplane(b,a,placeNumber,FilterFreq):
 
     return z, p, k
 
+def Fcharasteticstics(argh, FilterNumber):
+    _, ax = plt.subplots(1, 2, figsize=(10,4))
+
+    ax[0].plot(w / 2 / np.pi * frameRate, np.abs(argh))
+    ax[0].set_xlabel('Frekvencia [Hz]')
+    ax[0].set_title('Modul frekvenčnej charakteristiky $|H(e^{j\omega})|$ Filter ' + str(FilterNumber))
+
+    ax[1].plot(w / 2 / np.pi * frameRate, np.angle(argh))
+    ax[1].set_xlabel('Frekvencia [Hz]')
+    ax[1].set_title('Argument frekvenčnej charakteristiky $\mathrm{arg}\ H(e^{j\omega})$ Filter ' + str(FilterNumber))
+
+    for ax1 in ax:
+        ax1.grid(alpha=0.5, linestyle='--')
+
+    plt.tight_layout()
+    plt.savefig('src/img/task9Filter' + str(FilterNumber) + '.pdf')
+    plt.close()
+
 def Task6():
     
-    print("****Generating task 6 ****")
-
     audioData = wavfile.read('audio/4cos.wav')
 
     audioInArray = np.array(audioData[1], dtype=float)
@@ -270,32 +286,32 @@ nyq = 0.5 * frameRate
 low = (f1-15) / nyq
 high = (f1+15) / nyq
 b1, a1 = signal.butter(4, [low,high], btype='bandstop')
-w, h = signal.freqz(b1, a1)
-plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h)))
+w, h1 = signal.freqz(b1, a1)
+plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h1)))
 
 
 
 low = (f2-15) / nyq
 high = (f2+15) / nyq
 b2, a2 = signal.butter(4, [low,high], btype='bandstop')
-w, h = signal.freqz(b2, a2)
-plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h)))
+w, h2 = signal.freqz(b2, a2)
+plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h2)))
 
 
 
 low =  (f3-15) / nyq
 high = (f3+15) / nyq
 b3, a3 = signal.butter(4, [low,high], btype='bandstop')
-w, h = signal.freqz(b3, a3)
-plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h)))
+w, h3 = signal.freqz(b3, a3)
+plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h3)))
 
 
 low = (f4-15) / nyq
 high = (f4+15) / nyq
 b4, a4 = signal.butter(4, [low,high], btype='bandstop')
-w, h = signal.freqz(b4, a4)
+w, h4 = signal.freqz(b4, a4)
 
-plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h)))
+plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h4)))
 plt.title('Butterworth filter frequency response')
 plt.gca().set_xlabel('f [hz]')
 plt.ylabel('Amplitude [dB]')
@@ -318,3 +334,8 @@ plt.savefig('src/img/task8polesB.pdf')
 plt.close()
 
 #####################################  9. Poles and Zeros  ######################################
+
+Fcharasteticstics(h1,1)
+Fcharasteticstics(h2,2)
+Fcharasteticstics(h3,3)
+Fcharasteticstics(h4,4)
