@@ -105,7 +105,7 @@ def ImpulseResponse(b,a,FilterNumber):
     plt.figure(figsize=(5,3))
     plt.stem(np.arange(N_imp), h, basefmt=' ')
     plt.gca().set_xlabel('$n$')
-    plt.gca().set_title('Impulsívna odozva $h[n]$ Filtru ' + str(FilterNumber))
+    plt.gca().set_title('Impulzívna odozva $h[n]$ Filtru ' + str(FilterNumber))
 
     plt.grid(alpha=0.5, linestyle='--')
     plt.savefig('src/img/task7filter' + str(FilterNumber) + '.pdf')
@@ -363,7 +363,7 @@ zplane(b4,a4,2,f4)
 plt.savefig('src/img/task8polesB.pdf')
 plt.close()
 
-#####################################  9. Poles and Zeros  ######################################
+#####################################  9. Response characteristic  ######################################
 
 Fcharasteticstics(h1,1)
 Fcharasteticstics(h2,2)
