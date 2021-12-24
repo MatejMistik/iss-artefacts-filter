@@ -84,7 +84,7 @@ def zplane(b,a,placeNumber,FilterFreq):
 
 
 def Fcharasteticstics(argh, FilterNumber):
-    _, ax = plt.subplots(1, 2, figsize=(10,4))
+    _, ax = plt.subplots(1, 2, figsize=(12,4))
 
     ax[0].plot(w / 2 / np.pi * frameRate, np.abs(argh))
     ax[0].set_xlabel('Frekvencia [Hz]')
@@ -102,7 +102,7 @@ def Fcharasteticstics(argh, FilterNumber):
 
 def ImpulseResponse(b,a,FilterNumber):
     h = lfilter(b, a, imp)
-    plt.figure(figsize=(5,3))
+    plt.figure(figsize=(7,5))
     plt.stem(np.arange(N_imp), h, basefmt=' ')
     plt.gca().set_xlabel('$n$')
     plt.gca().set_title('Impulsívna odozva $h[n]$ Filtru ' + str(FilterNumber))
@@ -127,7 +127,7 @@ def SpectogramOfCosinus():
     # prevod na PSD
     # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
     sgr_log = 10 * np.log10(sgr+1e-20) 
-    plt.figure(figsize=(9,3))
+    plt.figure(figsize=(9,5))
     plt.pcolormesh(t,f,sgr_log)
     plt.gca().set_xlabel('Čas [s]')
     plt.gca().set_ylabel('Frekvence [Hz]')
@@ -173,7 +173,7 @@ audioInArray = np.array(audioData[1], dtype=float)
 audioInArray = audioInArray [0:recordingTotalFrames]
 
 duration = np.arange(audioInArray.size) / frameRate
-print("Duration : " + (str(round(max(duration), 2)) + "s"))
+print("Duration : " + (str(round(max(duration), 6)) + "s"))
 plt.figure(figsize=(8,4))
 plt.plot(duration, audioInArray)
 
@@ -242,7 +242,7 @@ f, t, sgr = signal.spectrogram(audioInArray,frameRate,nperseg=1024, noverlap=512
 # prevod na PSD
 # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
 sgr_log = 10 * np.log10(sgr+1e-20) 
-plt.figure(figsize=(9,3))
+plt.figure(figsize=(9,5))
 plt.pcolormesh(t,f,sgr_log)
 plt.gca().set_xlabel('Čas [s]')
 plt.gca().set_ylabel('Frekvence [Hz]')
