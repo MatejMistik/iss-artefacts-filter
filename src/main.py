@@ -105,7 +105,7 @@ def ImpulseResponse(b,a,FilterNumber):
     plt.figure(figsize=(7,5))
     plt.stem(np.arange(N_imp), h, basefmt=' ')
     plt.gca().set_xlabel('$n$')
-    plt.gca().set_title('Impulsívna odozva $h[n]$ Filtru ' + str(FilterNumber))
+    plt.gca().set_title('Impulzívna odozva $h[n]$ Filtru ' + str(FilterNumber))
 
     plt.grid(alpha=0.5, linestyle='--')
     plt.savefig('src/img/task7filter' + str(FilterNumber) + '.pdf')
@@ -136,13 +136,13 @@ def SpectogramOfCosinus():
     plt.savefig('src/img/task6CosSpectogram.pdf')
     plt.close()
 
-def myDFT(signalData):
+def MyDFT(signalData):
     n = len(signalData)
     return [sum((signalData[k]*cmath.exp(-1j*2*cmath.pi*i*k/n) for k in range(n)))
             for i in range(n)]
 
 # rozdelenie na ramce    
-def getFrames(signalData,frameLength):
+def GetFrames(signalData,frameLength):
     length=len(signalData) 
     overlap= 512
     framesize=int(frameLength)
@@ -195,7 +195,7 @@ print("Normalized Maximal Value : " + str(max(audioInArray)))
 print("Normalized Maximal Value : " + str(min(audioInArray)))
 
 audioInArray = audioInArray [0:recordingTotalFrames]
-frames = getFrames(audioInArray, 1024)
+frames = GetFrames(audioInArray, 1024)
 
 timeOfOneFrame = np.arange(frames[43].size) / frameRate
 
@@ -212,7 +212,7 @@ plt.close()
 #####################################  3. DFT  #########################################
 
 print("\nTask3\n**********\n")
-MyDFTFrames= myDFT(frames[43])
+MyDFTFrames= MyDFT(frames[43])
 LibraryDFTFrames = np.fft.fft(frames, 1024)
 dfts_equal = np.allclose(MyDFTFrames,LibraryDFTFrames[43])
 print( "Are DFTs equal ? : {} " .format('Yes' if dfts_equal else 'No'))
@@ -254,11 +254,12 @@ plt.close()
 
 #####################################  5. Generating Signals  ######################################
 
-## in hz need to convert for 16000hz framerate
 f1 = 965
 f2 = 2*f1
 f3 = 3*f1
 f4 = 4*f1
+
+#####################################  6. Cosinuses Spectogram ######################################
 
 fourCos = []
 for i in range(recordingTotalFrames):
@@ -272,7 +273,6 @@ outputCos4 = np.cos(2 * np.pi * f4 * np.array(fourCos))
 outputCos = outputCos1 + outputCos2 + outputCos3 + outputCos4
 wavfile.write("audio/4cos.wav",frameRate,outputCos.astype(np.float32))
 
-#####################################  6. Cosinuses Spectogram ######################################
 
 SpectogramOfCosinus();
 
@@ -363,7 +363,7 @@ zplane(b4,a4,2,f4)
 plt.savefig('src/img/task8polesB.pdf')
 plt.close()
 
-#####################################  9. Poles and Zeros  ######################################
+#####################################  9. Response characteristic  ######################################
 
 Fcharasteticstics(h1,1)
 Fcharasteticstics(h2,2)
