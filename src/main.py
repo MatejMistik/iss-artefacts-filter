@@ -112,18 +112,14 @@ def ImpulseResponse(b,a,FilterNumber):
     plt.close()
 
 
-def Task6():
+def SpectogramOfCosinus():
     
     audioData = wavfile.read('audio/4cos.wav')
 
     audioInArray = np.array(audioData[1], dtype=float)
-    print("MAX bez normalizace " + str(max(audioInArray)))
-    print("MIN bez normalizace " + str(min(audioInArray)))
 
     audioInArray -= np.mean(audioInArray)
     audioInArray /= np.abs(audioInArray).max()
-    print(max(audioInArray))
-    print(min(audioInArray))
 
     audioInArray = audioInArray [0:recordingTotalFrames]
 
@@ -137,26 +133,13 @@ def Task6():
     plt.gca().set_ylabel('Frekvence [Hz]')
     cbar = plt.colorbar()
     cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
-    plt.savefig('src/img/task6.pdf')
+    plt.savefig('src/img/task6CosSpectogram.pdf')
     plt.close()
 
 def myDFT(signalData):
     n = len(signalData)
     return [sum((signalData[k]*cmath.exp(-1j*2*cmath.pi*i*k/n) for k in range(n)))
-            for i in range(n)] 
-
-########################################### MAIN ########################################### 
-
-
-#####################################  1. Load Audio files #########################################
-
-with contextlib.closing(wave.open(recording,'r')) as f:
-    recordingTotalFrames = f.getnframes()
-    frameRate = f.getframerate()
-    duration = recordingTotalFrames / float(frameRate)
-    print("duration " + str(duration))
-    print("recordingTotalFrames " + str(recordingTotalFrames))
-    print("framerate " + str(frameRate))
+            for i in range(n)]
 
 # rozdelenie na ramce    
 def getFrames(signalData,frameLength):
@@ -171,19 +154,45 @@ def getFrames(signalData,frameLength):
                 frames[k][i]=signalData[k*overlap+i]
             else:
                 frames[k][i]=0
-    return frames
+    return frames             
+
+########################################### MAIN ########################################### 
+
+
+#####################################  1. Load Audio files #########################################
+print("\nTask1\n**********\n")
+print("AudioFile values:")
+
+with contextlib.closing(wave.open(recording,'r')) as f:
+    recordingTotalFrames = f.getnframes()
+    frameRate = f.getframerate()
+    print("Frames : " + str(recordingTotalFrames))
 
 audioData = wavfile.read(recording)
+audioInArray = np.array(audioData[1], dtype=float)
+audioInArray = audioInArray [0:recordingTotalFrames]
+
+duration = np.arange(audioInArray.size) / frameRate
+print("Duration : " + (str(round(max(duration), 2)) + "s"))
+plt.figure(figsize=(8,4))
+plt.plot(duration, audioInArray)
+
+plt.gca().set_xlabel('$t[s]$')
+plt.gca().set_title('Zvukový signál')
+
+plt.savefig('src/img/task1RawAudioFile.pdf')
+plt.close()   
+
 #################################  2. Preparation + Frames  #####################################
 
-audioInArray = np.array(audioData[1], dtype=float)
-print("MAX bez normalizace " + str(max(audioInArray)))
-print("MIN bez normalizace " + str(min(audioInArray)))
+print("Maximal Value : " + str(max(audioInArray)))
+print("Minimal Value : " + str(min(audioInArray)))
 
 audioInArray -= np.mean(audioInArray)
 audioInArray /= np.abs(audioInArray).max()
-print(max(audioInArray))
-print(min(audioInArray))
+print("\nTask2\n**********\n")
+print("Normalized Maximal Value : " + str(max(audioInArray)))
+print("Normalized Maximal Value : " + str(min(audioInArray)))
 
 audioInArray = audioInArray [0:recordingTotalFrames]
 frames = getFrames(audioInArray, 1024)
@@ -195,18 +204,18 @@ plt.figure(figsize=(10,5))
 plt.plot(timeOfOneFrame,frames[42]) 
 plt.gca().set_xlabel(u"$t[s]$")
 plt.gca().set_title(u"ramec - recording")
-plt.savefig('src/img/task2.pdf')
+plt.savefig('src/img/task2NormalizedFrame.pdf')
 plt.close()
 
 
 
 #####################################  3. DFT  #########################################
 
-
+print("\nTask3\n**********\n")
 MyDFTFrames= myDFT(frames[43])
 LibraryDFTFrames = np.fft.fft(frames, 1024)
-print( "Are DFTs equalt? : "+ str(np.allclose(MyDFTFrames,LibraryDFTFrames[43])))
-
+dfts_equal = np.allclose(MyDFTFrames,LibraryDFTFrames[43])
+print( "Are DFTs equal ? : {} " .format('Yes' if dfts_equal else 'No'))
 
 plt.figure(figsize=(10,5))
 plt.plot(np.real(MyDFTFrames[0:512]))
@@ -225,8 +234,8 @@ plt.gca().set_title(u"DFT - recording")
 plt.savefig('src/img/task3LibDFT.pdf')
 plt.close()
 shape = len(frames)
-print(frames.size)
-print(shape)
+
+
 #####################################  4. Spectogram   ######################################
 
 f, t, sgr = signal.spectrogram(audioInArray,frameRate,nperseg=1024, noverlap=512)
@@ -243,7 +252,7 @@ cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
 plt.savefig('src/img/task4Spectrum.pdf')
 plt.close()
 
-#####################################  5+6. Generating Signals  ######################################
+#####################################  5. Generating Signals  ######################################
 
 ## in hz need to convert for 16000hz framerate
 f1 = 965
@@ -263,22 +272,26 @@ outputCos4 = np.cos(2 * np.pi * f4 * np.array(fourCos))
 outputCos = outputCos1 + outputCos2 + outputCos3 + outputCos4
 wavfile.write("audio/4cos.wav",frameRate,outputCos.astype(np.float32))
 
-Task6();
+#####################################  6. Cosinuses Spectogram ######################################
+
+SpectogramOfCosinus();
 
 #####################################  7. Generate Filters  ######################################
 
-
+print("\nTask7\n**********\n")
 nyq = 0.5 * frameRate
 lowStop = (f1-30) / nyq
 highStop = (f1+30) / nyq
 lowPass = (f1-80) / nyq
 highPass = (f1+80) / nyq
 N,Wn = signal.buttord([lowPass, highPass], [lowStop, highStop], 3, 40)
-print("N is "+ str(N))
 b1, a1 = signal.butter(N, Wn, btype='bandstop')
 w, h1 = signal.freqz(b1, a1)
 plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h1)))
-
+print("Filter 1 coefficients:\n\nA\n")
+print(a1)
+print("\nB\n")
+print(b1)
 
 
 lowStop = (f2-30) / nyq
@@ -289,7 +302,10 @@ N,Wn = signal.buttord([lowPass, highPass], [lowStop, highStop], 3, 40)
 b2, a2 = signal.butter(N, Wn, btype='bandstop')
 w, h2 = signal.freqz(b2, a2)
 plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h2)))
-
+print("\nFilter 2 coefficients:\n\nA\n")
+print(a2)
+print("\nB\n")
+print(b2)
 
 
 lowStop =  (f3-30) / nyq
@@ -300,7 +316,10 @@ N,Wn = signal.buttord([lowPass, highPass], [lowStop, highStop], 3, 40)
 b3, a3 = signal.butter(N, Wn, btype='bandstop')
 w, h3 = signal.freqz(b3, a3)
 plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h3)))
-
+print("\nFilter 3 coefficients:\n\nA\n")
+print(a3)
+print("\nB\n")
+print(b3)
 
 lowStop = (f4-30) / nyq
 highStop = (f4+30) / nyq
@@ -315,9 +334,12 @@ plt.gca().set_xlabel('f [hz]')
 plt.ylabel('Amplitude [dB]')
 plt.margins(0, 0.1)
 plt.grid(which='both', axis='both')
-plt.savefig('src/img/task7filters.pdf')
+plt.savefig('src/img/task9ModulsOfFilters.pdf')
 plt.close()
-
+print("\nFilter 4 coefficients:\n\nA\n")
+print(a4)
+print("\nB\n")
+print(b4)
 
 # impulsni odezva
 N_imp = 32
@@ -327,7 +349,6 @@ ImpulseResponse(b1,a1,1)
 ImpulseResponse(b2,a2,2)
 ImpulseResponse(b3,a3,3)
 ImpulseResponse(b4,a4,4)
-plt.close()
 
 
 #####################################  8. Poles and Zeros  ######################################
@@ -366,6 +387,15 @@ plt.gca().set_ylabel('Frekvence [Hz]')
 cbar = plt.colorbar()
 cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
 
-plt.savefig('src/img/task10polesB.pdf')
+plt.savefig('src/img/task10FinalSignal.pdf')
+
+ 
+sf -= np.mean(sf)
+sf /= np.abs(sf).max()
+
+print("\nTask10\n**********\n")
+polite_state = (  max(sf) <= 1  and  min(sf) >= -1 )
+print('Signal {} in polite state.\n'.format('is' if polite_state else 'is not'))
+
 
 wavfile.write("audio/bandstop.wav",frameRate,sf.astype(np.float32))
