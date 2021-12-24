@@ -102,6 +102,18 @@ def Fcharasteticstics(argh, FilterNumber):
     plt.savefig('src/img/task9Filter' + str(FilterNumber) + '.pdf')
     plt.close()
 
+def ImpulseResponse(b,a,FilterNumber):
+    h = lfilter(b, a, imp)
+    plt.figure(figsize=(5,3))
+    plt.stem(np.arange(N_imp), h, basefmt=' ')
+    plt.gca().set_xlabel('$n$')
+    plt.gca().set_title('Impulsívna odozva $h[n]$ Filtru ' + str(FilterNumber))
+
+    plt.grid(alpha=0.5, linestyle='--')
+    plt.savefig('src/img/task7filter' + str(FilterNumber) + '.pdf')
+    plt.close()
+
+
 def Task6():
     
     audioData = wavfile.read('audio/4cos.wav')
@@ -181,24 +193,24 @@ frames = getFrames(audioInArray, 1024)
 
 timeOfOneFrame = np.arange(frames[43].size) / frameRate
 
-"""
+
 plt.figure(figsize=(10,5))
 plt.plot(timeOfOneFrame,frames[42]) 
 plt.gca().set_xlabel(u"$t[s]$")
 plt.gca().set_title(u"ramec - recording")
 plt.savefig('src/img/task2.pdf')
 plt.close()
-"""
+
 
 
 #####################################  3. DFT  #########################################
 
 
-#MyDFTFrames= myDFT(frames[42])
+MyDFTFrames= myDFT(frames[43])
 LibraryDFTFrames = np.fft.fft(frames, 1024)
-#print( "Are DFTs equalt? : "+ str(np.allclose(MyDFTFrames,LibraryDFTFrames)))
+print( "Are DFTs equalt? : "+ str(np.allclose(MyDFTFrames,LibraryDFTFrames[43])))
 
-"""
+
 plt.figure(figsize=(10,5))
 plt.plot(np.real(MyDFTFrames[0:512]))
 plt.gca().set_ylabel(u"$f[Hz]$") 
@@ -206,7 +218,7 @@ plt.gca().set_xlabel(u"$vzorky[n]$")
 plt.gca().set_title(u"DFT - recording")
 plt.savefig('src/img/task3MyDFT.pdf')
 plt.close()
-"""
+
 fDFT = np.arange(LibraryDFTFrames[43][0:512].size) / 1024 * frameRate
 
 plt.figure(figsize=(10,5))
@@ -220,28 +232,6 @@ print(frames.size)
 print(shape)
 #####################################  4. Spectogram   ######################################
 
-spectrum = np.ndarray((shape,512), dtype=np.complex128)
-
-for k in range(0,shape):
-    spectrum[k] = LibraryDFTFrames[k][0:512]
-
-N = frames.size
-# vykreslenie spektogramu
-f, ax = plt.subplots(figsize=(10, 3))
-S = np.abs(spectrum)
-S = 10 * np.log10(1/N * S**2)
-ax.set_title('Spektogram bez rúška')
-cax = ax.imshow(np.rot90(S), cmap='viridis', aspect='auto', extent=[0, duration, 0, 8000])
-ax.axis('auto')
-ax.set_ylabel('Frekvencia [Hz]')
-ax.set_xlabel('Čas [s]');
-cbar   = f.colorbar(cax,aspect=10)
-cbar.set_label('Spektrálna hustota výkonu [dB]', rotation=270, labelpad=15)
-plt.tight_layout()
-plt.savefig('src/img/task4Spectrum.pdf')
-plt.close()
-
-"""
 f, t, sgr = signal.spectrogram(audioInArray,frameRate,nperseg=1024, noverlap=512)
 # prevod na PSD
 # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
@@ -254,13 +244,13 @@ cbar = plt.colorbar()
 cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
 
 plt.tight_layout()
-plt.show()
-"""
+plt.savefig('src/img/task4Spectrum.pdf')
+plt.close()
 
 #####################################  5+6. Generating Signals  ######################################
 
 ## in hz need to convert for 16000hz framerate
-f1 = 976
+f1 = 965
 f2 = 2*f1
 f3 = 3*f1
 f4 = 4*f1
@@ -275,7 +265,7 @@ outputCos3 = np.cos(2 * np.pi * f3 * np.array(fourCos))
 outputCos4 = np.cos(2 * np.pi * f4 * np.array(fourCos))
 
 outputCos = outputCos1 + outputCos2 + outputCos3 + outputCos4
-wavfile.write("audio/4cos.wav",frameRate,outputCos.astype(np.float64))
+wavfile.write("audio/4cos.wav",frameRate,outputCos.astype(np.float32))
 
 Task6();
 
@@ -283,34 +273,46 @@ Task6();
 
 
 nyq = 0.5 * frameRate
-low = (f1-15) / nyq
-high = (f1+15) / nyq
-b1, a1 = signal.butter(4, [low,high], btype='bandstop')
+lowStop = (f1-30) / nyq
+highStop = (f1+30) / nyq
+lowPass = (f1-80) / nyq
+highPass = (f1+80) / nyq
+N,Wn = signal.buttord([lowPass, highPass], [lowStop, highStop], 3, 40)
+print("N is "+ str(N))
+b1, a1 = signal.butter(N, Wn, btype='bandstop')
 w, h1 = signal.freqz(b1, a1)
 plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h1)))
 
 
 
-low = (f2-15) / nyq
-high = (f2+15) / nyq
-b2, a2 = signal.butter(4, [low,high], btype='bandstop')
+lowStop = (f2-30) / nyq
+highStop = (f2+30) / nyq
+lowPass = (f2-80) / nyq
+highPass = (f2+80) / nyq
+N,Wn = signal.buttord([lowPass, highPass], [lowStop, highStop], 3, 40)
+b2, a2 = signal.butter(N, Wn, btype='bandstop')
 w, h2 = signal.freqz(b2, a2)
 plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h2)))
 
 
 
-low =  (f3-15) / nyq
-high = (f3+15) / nyq
-b3, a3 = signal.butter(4, [low,high], btype='bandstop')
+lowStop =  (f3-30) / nyq
+highStop = (f3+30) / nyq
+lowPass = (f3-80) / nyq
+highPass = (f3+80) / nyq
+N,Wn = signal.buttord([lowPass, highPass], [lowStop, highStop], 3, 40)
+b3, a3 = signal.butter(N, Wn, btype='bandstop')
 w, h3 = signal.freqz(b3, a3)
 plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h3)))
 
 
-low = (f4-15) / nyq
-high = (f4+15) / nyq
-b4, a4 = signal.butter(4, [low,high], btype='bandstop')
+lowStop = (f4-30) / nyq
+highStop = (f4+30) / nyq
+lowPass = (f4-80) / nyq
+highPass = (f4+80) / nyq
+N,Wn = signal.buttord([lowPass, highPass], [lowStop, highStop], 3, 40)
+b4, a4 = signal.butter(N, Wn, btype='bandstop')
 w, h4 = signal.freqz(b4, a4)
-
 plt.plot(w/np.pi*frameRate/2, 20 * np.log10(abs(h4)))
 plt.title('Butterworth filter frequency response')
 plt.gca().set_xlabel('f [hz]')
@@ -318,6 +320,17 @@ plt.ylabel('Amplitude [dB]')
 plt.margins(0, 0.1)
 plt.grid(which='both', axis='both')
 plt.savefig('src/img/task7filters.pdf')
+plt.close()
+
+
+# impulsni odezva
+N_imp = 32
+imp = [1, *np.zeros(N_imp-1)]
+
+ImpulseResponse(b1,a1,1)
+ImpulseResponse(b2,a2,2)
+ImpulseResponse(b3,a3,3)
+ImpulseResponse(b4,a4,4)
 plt.close()
 
 
@@ -339,3 +352,25 @@ Fcharasteticstics(h1,1)
 Fcharasteticstics(h2,2)
 Fcharasteticstics(h3,3)
 Fcharasteticstics(h4,4)
+
+#####################################  10. Filtration  ######################################
+
+sf = lfilter(b1, a1, audioInArray)
+sf = lfilter(b2, a2, sf)
+sf = lfilter(b3, a3, sf)
+sf = lfilter(b4, a4, sf)
+f, t, sfgr = signal.spectrogram(sf, frameRate)
+sfgr_log = 10 * np.log10(sfgr+1e-20)
+
+plt.figure(figsize=(10,4))
+plt.pcolormesh(t,f,sfgr_log)
+plt.gca().set_title('Spektrogram vyfiltrovaného signálu')
+plt.gca().set_xlabel('Čas [s]')
+plt.gca().set_ylabel('Frekvence [Hz]')
+cbar = plt.colorbar()
+cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
+
+plt.tight_layout()
+plt.savefig('src/img/task10polesB.pdf')
+
+wavfile.write("audio/bandstop.wav",frameRate,sf.astype(np.float32))
