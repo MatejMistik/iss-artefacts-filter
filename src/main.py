@@ -68,12 +68,12 @@ def zplane(b,a,placeNumber,FilterFreq):
     # Plot the zeros and set marker properties    
     t1 = plt.plot(z.real, z.imag, 'go', ms=10)
     plt.setp( t1, markersize=10.0, markeredgewidth=1.0,
-              markeredgecolor='k', markerfacecolor='g',label='nuly')
+              markeredgecolor='k', markerfacecolor='g', markevery=5,label='nuly')
 
     # Plot the poles and set marker properties
     t2 = plt.plot(p.real, p.imag, 'rx', ms=10)
     plt.setp( t2, markersize=12.0, markeredgewidth=3.0,
-              markeredgecolor='r', markerfacecolor='r',label='póly')
+              markeredgecolor='r', markerfacecolor='r', markevery=5,label='póly')
 
     # set the ticks
     r = 1.2; plt.axis('scaled'); plt.axis([-r, r, -r, r])
@@ -82,7 +82,6 @@ def zplane(b,a,placeNumber,FilterFreq):
     plt.gca().set_title(u"Butterworth Filter " + str(FilterFreq) + 'Hz')
     plt.legend(loc='upper right')
 
-    return z, p, k
 
 def Fcharasteticstics(argh, FilterNumber):
     _, ax = plt.subplots(1, 2, figsize=(10,4))
@@ -98,7 +97,6 @@ def Fcharasteticstics(argh, FilterNumber):
     for ax1 in ax:
         ax1.grid(alpha=0.5, linestyle='--')
 
-    plt.tight_layout()
     plt.savefig('src/img/task9Filter' + str(FilterNumber) + '.pdf')
     plt.close()
 
@@ -139,7 +137,6 @@ def Task6():
     plt.gca().set_ylabel('Frekvence [Hz]')
     cbar = plt.colorbar()
     cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
-    plt.tight_layout()
     plt.savefig('src/img/task6.pdf')
     plt.close()
 
@@ -243,7 +240,6 @@ plt.gca().set_ylabel('Frekvence [Hz]')
 cbar = plt.colorbar()
 cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
 
-plt.tight_layout()
 plt.savefig('src/img/task4Spectrum.pdf')
 plt.close()
 
@@ -370,7 +366,6 @@ plt.gca().set_ylabel('Frekvence [Hz]')
 cbar = plt.colorbar()
 cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
 
-plt.tight_layout()
 plt.savefig('src/img/task10polesB.pdf')
 
 wavfile.write("audio/bandstop.wav",frameRate,sf.astype(np.float32))
