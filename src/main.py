@@ -1,6 +1,16 @@
+#!/usr/bin/env python
 # coding=utf-8
 
-# Matej Mistik
+
+"""
+This program is specified for clearing only 4 artefacts, where origin cos is at f = 965Hz.
+
+main.py get audiofile.wav file with fs = 16000Hz, bit-rate = 16 and without compresion.
+Audiofile gets analyzed and analyzed outputs are in ./img as .pdf outputs.
+After analyzation, 4 Butterworth band-stop filters are created to clear 4 intterupting artefacts.
+Final output is in ./audio bandstop.wav, which is origin audiofile cleared. 
+
+"""
 
 # import libraries
 import soundfile as sf
@@ -17,12 +27,19 @@ from matplotlib import rcParams
 from scipy.signal import lfilter
 from scipy.io import wavfile
 import cmath
+import os
 
+__author__ = "Matej Mištík"
+__version__ = "1.0"
+__maintainer__ = "Matej Mištík"
+__email__ = "xmisti00@stud.vutbr.cz"
 
 # Global variables
 recording = 'audio/xmisti00.wav'
 
 # functions
+
+
 """
 ***************************************************************************************/
 *    Title: PYTHON ZPLANE FUNCTION
@@ -68,12 +85,12 @@ def zplane(b,a,placeNumber,FilterFreq):
     # Plot the zeros and set marker properties    
     t1 = plt.plot(z.real, z.imag, 'go', ms=10)
     plt.setp( t1, markersize=10.0, markeredgewidth=1.0,
-              markeredgecolor='k', markerfacecolor='g', markevery=5,label='nuly')
+              markeredgecolor='k', markerfacecolor='g',label='nuly')
 
     # Plot the poles and set marker properties
     t2 = plt.plot(p.real, p.imag, 'rx', ms=10)
-    plt.setp( t2, markersize=12.0, markeredgewidth=3.0,
-              markeredgecolor='r', markerfacecolor='r', markevery=5,label='póly')
+    plt.setp( t2, markersize=8.0, markeredgewidth=1.5,
+              markeredgecolor='r', markerfacecolor='r',label='póly')
 
     # set the ticks
     r = 1.2; plt.axis('scaled'); plt.axis([-r, r, -r, r])
@@ -97,53 +114,53 @@ def Fcharasteticstics(argh, FilterNumber):
     for ax1 in ax:
         ax1.grid(alpha=0.5, linestyle='--')
 
-    plt.savefig('src/img/task9Filter' + str(FilterNumber) + '.pdf')
+    plt.savefig('./img/task9Filter' + str(FilterNumber) + '.pdf')
     plt.close()
 
 def ImpulseResponse(b,a,FilterNumber):
     h = lfilter(b, a, imp)
-    plt.figure(figsize=(7,5))
+    plt.figure(figsize=(9,4))
     plt.stem(np.arange(N_imp), h, basefmt=' ')
     plt.gca().set_xlabel('$n$')
     plt.gca().set_title('Impulzívna odozva $h[n]$ Filtru ' + str(FilterNumber))
 
     plt.grid(alpha=0.5, linestyle='--')
-    plt.savefig('src/img/task7filter' + str(FilterNumber) + '.pdf')
+    plt.savefig('./img/task7filter' + str(FilterNumber) + '.pdf')
     plt.close()
 
 
-def SpectogramOfCosinus():
+def SpectogramOfCosinus(audioFileCos):
     
-    audioData = wavfile.read('audio/4cos.wav')
+    audioData = wavfile.read(audioFileCos)
 
     audioInArray = np.array(audioData[1], dtype=float)
-
     audioInArray -= np.mean(audioInArray)
     audioInArray /= np.abs(audioInArray).max()
-
     audioInArray = audioInArray [0:recordingTotalFrames]
 
     f, t, sgr = signal.spectrogram(audioInArray,frameRate,nperseg=1024, noverlap=512)
     # prevod na PSD
     # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
     sgr_log = 10 * np.log10(sgr+1e-20) 
-    plt.figure(figsize=(9,5))
+    plt.figure(figsize=(9,4))
     plt.pcolormesh(t,f,sgr_log)
+    plt.gca().set_title('Spektrogram signálu štyroch cosinusiek')
     plt.gca().set_xlabel('Čas [s]')
     plt.gca().set_ylabel('Frekvence [Hz]')
     cbar = plt.colorbar()
-    cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
-    plt.savefig('src/img/task6CosSpectogram.pdf')
+    cbar.set_label('Spektrálna hustota výkonu [dB]', rotation=270, labelpad=15)
+    plt.savefig('./img/task6CosSpectogram.pdf')
     plt.close()
 
-def MyDFT(signalData):
-    n = len(signalData)
-    return [sum((signalData[k]*cmath.exp(-1j*2*cmath.pi*i*k/n) for k in range(n)))
+
+def MyDFT(recordingData):
+    n = len(recordingData)
+    return [sum((recordingData[k]*cmath.exp(-1j*2*cmath.pi*i*k/n) for k in range(n)))
             for i in range(n)]
 
 # rozdelenie na ramce    
-def GetFrames(signalData,frameLength):
-    length=len(signalData) 
+def GetFrames(recordingData,frameLength):
+    length=len(recordingData) 
     overlap= 512
     framesize=int(frameLength)
     countFrames= int(length/overlap);
@@ -151,13 +168,17 @@ def GetFrames(signalData,frameLength):
     for k in range(0,countFrames):
         for i in range(0,framesize):
             if((k*overlap+i)<length):
-                frames[k][i]=signalData[k*overlap+i]
+                frames[k][i]=recordingData[k*overlap+i]
             else:
                 frames[k][i]=0
     return frames             
 
 ########################################### MAIN ########################################### 
-
+#Create dir for output
+imgDirPath = "./img/"
+audioDirPath = "./audio/"
+os.makedirs(os.path.dirname(imgDirPath), exist_ok=True)
+os.makedirs(os.path.dirname(audioDirPath), exist_ok=True)
 
 #####################################  1. Load Audio files #########################################
 print("\nTask1\n**********\n")
@@ -180,7 +201,8 @@ plt.plot(duration, audioInArray)
 plt.gca().set_xlabel('$t[s]$')
 plt.gca().set_title('Zvukový signál')
 
-plt.savefig('src/img/task1RawAudioFile.pdf')
+
+plt.savefig('./img/task1RawAudioFile.pdf')
 plt.close()   
 
 #################################  2. Preparation + Frames  #####################################
@@ -200,11 +222,11 @@ frames = GetFrames(audioInArray, 1024)
 timeOfOneFrame = np.arange(frames[43].size) / frameRate
 
 
-plt.figure(figsize=(10,5))
-plt.plot(timeOfOneFrame,frames[42]) 
+plt.figure(figsize=(9,4))
+plt.plot(timeOfOneFrame,frames[43]) 
 plt.gca().set_xlabel(u"$t[s]$")
-plt.gca().set_title(u"ramec - recording")
-plt.savefig('src/img/task2NormalizedFrame.pdf')
+plt.gca().set_title(u"Normalizovaný Rámec 43")
+plt.savefig('./img/task2NormalizedFrame.pdf')
 plt.close()
 
 
@@ -217,21 +239,21 @@ LibraryDFTFrames = np.fft.fft(frames, 1024)
 dfts_equal = np.allclose(MyDFTFrames,LibraryDFTFrames[43])
 print( "Are DFTs equal ? : {} " .format('Yes' if dfts_equal else 'No'))
 
-plt.figure(figsize=(10,5))
+plt.figure(figsize=(9,4))
 plt.plot(np.real(MyDFTFrames[0:512]))
 plt.gca().set_ylabel(u"$f[Hz]$") 
 plt.gca().set_xlabel(u"$vzorky[n]$")
-plt.gca().set_title(u"DFT - recording")
-plt.savefig('src/img/task3MyDFT.pdf')
+plt.gca().set_title(u"DFT rámcu 43")
+plt.savefig('./img/task3MyDFT.pdf')
 plt.close()
 
 fDFT = np.arange(LibraryDFTFrames[43][0:512].size) / 1024 * frameRate
 
-plt.figure(figsize=(10,5))
+plt.figure(figsize=(9,4))
 plt.plot(fDFT,np.real(LibraryDFTFrames[43][0:512]))
 plt.gca().set_xlabel(u"$f[Hz]$")
-plt.gca().set_title(u"DFT - recording")
-plt.savefig('src/img/task3LibDFT.pdf')
+plt.gca().set_title(u"DFT rámcu 43")
+plt.savefig('./img/task3LibDFT.pdf')
 plt.close()
 shape = len(frames)
 
@@ -242,14 +264,15 @@ f, t, sgr = signal.spectrogram(audioInArray,frameRate,nperseg=1024, noverlap=512
 # prevod na PSD
 # (ve spektrogramu se obcas objevuji nuly, ktere se nelibi logaritmu, proto +1e-20)
 sgr_log = 10 * np.log10(sgr+1e-20) 
-plt.figure(figsize=(9,5))
+plt.figure(figsize=(9,4))
 plt.pcolormesh(t,f,sgr_log)
+plt.gca().set_title('Spektrogram signálu')
 plt.gca().set_xlabel('Čas [s]')
-plt.gca().set_ylabel('Frekvence [Hz]')
+plt.gca().set_ylabel('Frekvencia [Hz]')
 cbar = plt.colorbar()
-cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
+cbar.set_label('Spektrálna hustota výkonu [dB]', rotation=270, labelpad=15)
 
-plt.savefig('src/img/task4Spectrum.pdf')
+plt.savefig('./img/task4Spectrum.pdf')
 plt.close()
 
 #####################################  5. Generating Signals  ######################################
@@ -273,8 +296,9 @@ outputCos4 = np.cos(2 * np.pi * f4 * np.array(fourCos))
 outputCos = outputCos1 + outputCos2 + outputCos3 + outputCos4
 wavfile.write("audio/4cos.wav",frameRate,outputCos.astype(np.float32))
 
+audioFileCos = "audio/4cos.wav"
 
-SpectogramOfCosinus();
+SpectogramOfCosinus(audioFileCos);
 
 #####################################  7. Generate Filters  ######################################
 
@@ -334,7 +358,7 @@ plt.gca().set_xlabel('f [hz]')
 plt.ylabel('Amplitude [dB]')
 plt.margins(0, 0.1)
 plt.grid(which='both', axis='both')
-plt.savefig('src/img/task9ModulsOfFilters.pdf')
+plt.savefig('./img/task9ModulsOfFilters.pdf')
 plt.close()
 print("\nFilter 4 coefficients:\n\nA\n")
 print(a4)
@@ -352,15 +376,15 @@ ImpulseResponse(b4,a4,4)
 
 
 #####################################  8. Poles and Zeros  ######################################
-plt.figure(figsize=(10,5))
+plt.figure(figsize=(9,4))
 zplane(b1,a1,1,f1)
 zplane(b2,a2,2,f2)
-plt.savefig('src/img/task8polesA.pdf')
+plt.savefig('./img/task8polesA.pdf')
 plt.close()
-plt.figure(figsize=(10,5))
+plt.figure(figsize=(9,4))
 zplane(b3,a3,1,f3)
 zplane(b4,a4,2,f4)
-plt.savefig('src/img/task8polesB.pdf')
+plt.savefig('./img/task8polesB.pdf')
 plt.close()
 
 #####################################  9. Response characteristic  ######################################
@@ -379,15 +403,15 @@ sf = lfilter(b4, a4, sf)
 f, t, sfgr = signal.spectrogram(sf, frameRate)
 sfgr_log = 10 * np.log10(sfgr+1e-20)
 
-plt.figure(figsize=(10,4))
+plt.figure(figsize=(9,4))
 plt.pcolormesh(t,f,sfgr_log)
 plt.gca().set_title('Spektrogram vyfiltrovaného signálu')
 plt.gca().set_xlabel('Čas [s]')
 plt.gca().set_ylabel('Frekvence [Hz]')
 cbar = plt.colorbar()
-cbar.set_label('Spektralní hustota výkonu [dB]', rotation=270, labelpad=15)
+cbar.set_label('Spektrálna hustota výkonu [dB]', rotation=270, labelpad=15)
 
-plt.savefig('src/img/task10FinalSignal.pdf')
+plt.savefig('./img/task10FinalSignal.pdf')
 
  
 sf -= np.mean(sf)
